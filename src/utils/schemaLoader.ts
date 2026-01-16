@@ -1,10 +1,8 @@
 import { Node, Edge } from '@xyflow/react';
 import { TableNodeData, TableColumn } from '@/types/schema';
 import { TABLE_COLORS } from '@/constants';
-import { performAutoLayout } from './autoLayout';
 
 export interface SchemaData {
-    autoLayout?: boolean;
     tables: Array<{
         id: string;
         name: string;
@@ -196,11 +194,5 @@ export function loadSchema(schemaData: SchemaData): { nodes: Node<TableNodeData>
         });
     }
 
-    // 3. Auto Layout if requested
-    let finalNodes = nodes;
-    if (schemaData.autoLayout) {
-        finalNodes = performAutoLayout(nodes);
-    }
-
-    return { nodes: finalNodes, edges };
+    return { nodes, edges };
 }

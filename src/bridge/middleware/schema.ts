@@ -110,7 +110,6 @@ export const schemaMiddleware: Middleware = (store) => (next) => (action) => {
              * 
              * Format dữ liệu từ Jmix:
              * {
-             *   autoLayout?: boolean,
              *   tables: [
              *     {
              *       id: string,

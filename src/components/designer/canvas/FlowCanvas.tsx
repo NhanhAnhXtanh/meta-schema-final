@@ -12,7 +12,6 @@ import {
     OnNodesDelete,
     Edge,
 } from '@xyflow/react';
-import { CanvasVisualHandler } from '@/components/designer/canvas/CanvasVisualHandler';
 import '@xyflow/react/dist/style.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -146,7 +145,6 @@ export function FlowCanvas({ post }: FlowCanvasProps) {
                 snapGrid={[16, 16]}
                 proOptions={{ hideAttribution: true }}
             >
-                <CanvasVisualHandler />
                 <NodeUpdater />
                 <Background color="#ccc" gap={16} />
                 <Controls className="bg-white text-black border-gray-200 shadow-sm" />

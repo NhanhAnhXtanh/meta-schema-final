@@ -14,24 +14,6 @@ export interface SchemaState {
     edges: Edge[];
 }
 
-interface LinkFieldPayload {
-    sourceNodeId: string;
-    targetNodeId: string;
-    sourcePK: string;
-    targetFK: string;
-    newFieldName: string;
-    relationshipType?: '1-n' | '1-1' | 'n-1';
-}
-
-interface ObjectConnectionPayload {
-    sourceNodeId: string;
-    sourceFieldName: string;
-    targetNodeId: string;
-    targetFieldName?: string;
-    newFieldName: string;
-    primaryKeyFieldName: string;
-}
-
 const initialState: SchemaState = {
     nodes: [],
     edges: [],
@@ -55,10 +37,6 @@ const schemaSlice = createSlice({
         },
         onEdgesChange: (state, action: PayloadAction<EdgeChange[]>) => {
             state.edges = applyEdgeChanges(action.payload, state.edges) as Edge[];
-        },
-        resetSchema: (state) => {
-            state.nodes = [];
-            state.edges = [];
         },
         onConnect: (state, action: PayloadAction<Connection>) => {
             const { source, target, sourceHandle, targetHandle } = action.payload;
@@ -151,163 +129,13 @@ const schemaSlice = createSlice({
             const { nodeId, fieldIndex, skipRecursive } = action.payload;
             deleteFieldAndCleanEdges(state.nodes, state.edges, nodeId, fieldIndex, skipRecursive);
         },
-        reorderFields: (state, action: PayloadAction<{ nodeId: string; oldIndex: number; newIndex: number }>) => {
-            const { nodeId, oldIndex, newIndex } = action.payload;
-            const nodeIndex = state.nodes.findIndex(n => n.id === nodeId);
-            if (nodeIndex !== -1) {
-                const node = state.nodes[nodeIndex];
-                const newColumns = [...node.data.columns];
-                const [removed] = newColumns.splice(oldIndex, 1);
-                newColumns.splice(newIndex, 0, removed);
-                const updatedNode = {
-                    ...node,
-                    data: {
-                        ...node.data,
-                        columns: newColumns,
-                        _version: Date.now()
-                    }
-                };
-                state.nodes = state.nodes.map((n, idx) => idx === nodeIndex ? updatedNode : n);
-                state.edges = state.edges.map(edge => {
-                    if (edge.source === nodeId || edge.target === nodeId) {
-                        return { ...edge };
-                    }
-                    return edge;
-                });
-            }
-        },
-        confirmLinkField: (state, action: PayloadAction<LinkFieldPayload>) => {
-            const { sourceNodeId, targetNodeId, sourcePK, targetFK, newFieldName, relationshipType } = action.payload;
-            const sourceNode = state.nodes.find(n => n.id === sourceNodeId);
-            const targetNode = state.nodes.find(n => n.id === targetNodeId);
-            if (!sourceNode || !targetNode) return;
-            const existingFieldIndex = sourceNode.data.columns.findIndex(c => c.name === newFieldName);
-            const newFieldData: TableColumn = {
-                name: newFieldName,
-                type: 'array',
-                visible: true,
-                isVirtual: true,
-                isPrimaryKey: false,
-                linkedPrimaryKeyField: sourcePK,
-                linkedForeignKeyField: targetFK,
-            };
-            if (existingFieldIndex !== -1) {
-                const existingField = sourceNode.data.columns[existingFieldIndex];
-                sourceNode.data.columns[existingFieldIndex] = {
-                    ...existingField,
-                    ...newFieldData,
-                    visible: existingField.visible
-                };
-            } else {
-                sourceNode.data.columns.push(newFieldData);
-            }
-            const sourcePKColumn = sourceNode.data.columns.find(c => c.name === sourcePK);
-            if (sourcePKColumn && sourcePKColumn.isForeignKey) {
-                const isStillUsed = state.edges.some(e =>
-                    (e.source === sourceNodeId && e.data?.sourceFK === sourcePK) ||
-                    (e.target === sourceNodeId && e.targetHandle === sourcePK)
-                );
-                if (!isStillUsed) {
-                    sourcePKColumn.isForeignKey = false;
-                }
-            }
-            const targetColumn = targetNode.data.columns.find(c => c.name === targetFK);
-            if (targetColumn) {
-                targetColumn.isForeignKey = true;
-            }
-            const edgeId = `${sourceNodeId}-${newFieldName}-to-${targetNodeId}-${targetFK}`;
-            state.edges.push({
-                id: edgeId,
-                source: sourceNodeId,
-                target: targetNodeId,
-                sourceHandle: newFieldName,
-                targetHandle: targetFK,
-                type: 'relationship',
-                data: { relationshipType: relationshipType || '1-n' }
-            });
-            const sourceIndex = state.nodes.findIndex(n => n.id === sourceNodeId);
-            if (sourceIndex !== -1) {
-                state.nodes[sourceIndex] = { ...state.nodes[sourceIndex] };
-            }
-            const targetIndex = state.nodes.findIndex(n => n.id === targetNodeId);
-            if (targetIndex !== -1) {
-                state.nodes[targetIndex] = { ...state.nodes[targetIndex] };
-            }
-        },
-        confirmLinkObject: (state, action: PayloadAction<{
-            sourceNodeId: string;
-            targetNodeId: string;
-            sourceFK: string;
-            targetPK: string;
-            newFieldName: string;
-            relationshipType?: 'n-1' | '1-1';
-        }>) => {
-            const { sourceNodeId, targetNodeId, sourceFK, targetPK, newFieldName, relationshipType } = action.payload;
-            const sourceNode = state.nodes.find(n => n.id === sourceNodeId);
-            const targetNode = state.nodes.find(n => n.id === targetNodeId);
-            if (sourceNode && targetNode) {
-                const existingFieldIndex = sourceNode.data.columns.findIndex(c => c.name === newFieldName);
-                const newFieldData: TableColumn = {
-                    name: newFieldName,
-                    type: 'object',
-                    visible: true,
-                    isVirtual: true,
-                    isPrimaryKey: false,
-                    isForeignKey: false,
-                    isNotNull: false,
-                    primaryKeyField: targetPK,
-                    linkedForeignKeyField: sourceFK,
-                    relationshipType: relationshipType || 'n-1'
-                };
-                if (existingFieldIndex !== -1) {
-                    const existingField = sourceNode.data.columns[existingFieldIndex];
-                    sourceNode.data.columns[existingFieldIndex] = {
-                        ...existingField,
-                        ...newFieldData,
-                        visible: existingField.visible
-                    };
-                } else {
-                    sourceNode.data.columns.push(newFieldData);
-                }
-                const targetPKColumn = targetNode.data.columns.find(c => c.name === targetPK);
-                if (targetPKColumn && targetPKColumn.isForeignKey) {
-                    const isStillUsed = state.edges.some(e =>
-                        (e.target === targetNodeId && e.targetHandle === targetPK) ||
-                        (e.source === targetNodeId && e.data?.sourceFK === targetPK)
-                    );
-                    if (!isStillUsed) {
-                        targetPKColumn.isForeignKey = false;
-                    }
-                }
-                const fkColumn = sourceNode.data.columns.find(c => c.name === sourceFK);
-                if (fkColumn) {
-                    fkColumn.isForeignKey = true;
-                }
-                const edgeId = `e-${sourceNodeId}-${sourceFK}-${targetNodeId}-${targetPK}`;
-                const exists = state.edges.some(e => e.id === edgeId);
-                if (!exists) {
-                    state.edges.push({
-                        id: edgeId,
-                        source: sourceNodeId,
-                        target: targetNodeId,
-                        sourceHandle: newFieldName,
-                        targetHandle: targetPK,
-                        type: 'relationship',
-                        data: { relationshipType: relationshipType || 'n-1' }
-                    });
-                }
-                state.nodes = [...state.nodes];
-            }
-        },
     },
 });
 
 export const {
     setNodes, setEdges, addEdge, onNodesChange, onEdgesChange, onConnect, updateEdge,
     addTable, updateTable, deleteTable, deleteElements,
-    addField, updateField, deleteField, reorderFields, toggleFieldVisibility,
-    resetSchema,
-    confirmLinkField, confirmLinkObject
+    addField, updateField, deleteField, toggleFieldVisibility
 } = schemaSlice.actions;
 
 export default schemaSlice.reducer;
