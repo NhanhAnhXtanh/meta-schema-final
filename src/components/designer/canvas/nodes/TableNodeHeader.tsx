@@ -12,12 +12,12 @@ interface TableNodeHeaderProps {
     setEditName: (val: string) => void;
     handleSaveRename: () => void;
     handleClone: () => void;
-    setShowDeleteDialog: (val: boolean) => void;
+    handleDelete: () => void;
 }
 
 export function TableNodeHeader({
     data, id, isEditing, editName, headerColor,
-    setIsEditing, setEditName, handleSaveRename, handleClone, setShowDeleteDialog
+    setIsEditing, setEditName, handleSaveRename, handleClone, handleDelete
 }: TableNodeHeaderProps) {
     return (
         <div
@@ -66,7 +66,7 @@ export function TableNodeHeader({
                         <Copy className="w-3.5 h-3.5" />
                     </button>
                     <button
-                        onClick={() => setShowDeleteDialog(true)}
+                        onClick={handleDelete}
                         className="p-1 hover:bg-red-500/50 rounded transition-colors"
                         title="Xóa"
                     >

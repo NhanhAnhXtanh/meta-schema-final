@@ -10,7 +10,6 @@ export function useTableNode(
 ) {
     const [isEditing, setIsEditing] = useState(false);
     const [editName, setEditName] = useState(data.label);
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const headerColor = data.color || THEME.NODE.HEADER_BG_DEFAULT;
 
     const handleAddField = () => {
@@ -76,16 +75,26 @@ export function useTableNode(
         }
     };
 
+    const handleDelete = () => {
+        // Gửi event lên Jmix - Jmix sẽ tự xử lý xác nhận và gửi lại event xuống
+        post({ 
+            v: 1, 
+            kind: "event", 
+            type: "SCHEMA_TABLE_DELETE_REQUEST", 
+            payload: { id } 
+        });
+        alert(`Đã gửi yêu cầu xóa bảng "${data.label}" lên Jmix`);
+    };
+
     return {
         isEditing,
         setIsEditing,
         editName,
         setEditName,
-        showDeleteDialog,
-        setShowDeleteDialog,
         headerColor,
         handleAddField,
         handleClone,
-        handleSaveRename
+        handleSaveRename,
+        handleDelete
     };
 }

@@ -2,9 +2,12 @@ import { configureStore, Reducer, UnknownAction } from '@reduxjs/toolkit';
 import undoable, { excludeAction, StateWithHistory } from 'redux-undo';
 import schemaReducer, { SchemaState } from './slices/schemaSlice';
 import uiReducer from './slices/uiSlice';
+import jmixReducer from '../bridge/jmixSlice';
+import { jmixMiddlewares } from '../bridge/middleware';
 
 export const store = configureStore({
     reducer: {
+        jmix: jmixReducer,
         schema: undoable(schemaReducer, {
             limit: 50,
             filter: excludeAction([
@@ -21,7 +24,7 @@ export const store = configureStore({
             serializableCheck: {
                 ignoredActions: ['schema/onNodesChange', 'schema/onEdgesChange'],
             },
-        }),
+        }).concat(...jmixMiddlewares),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

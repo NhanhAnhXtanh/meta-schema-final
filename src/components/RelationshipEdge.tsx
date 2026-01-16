@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { MoreVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { THEME } from '@/constants/theme';
-import { usePost } from '@/contexts/PostContext';
 
 export type RelationshipType = '1-1' | '1-n' | 'n-1';
 export type EdgePathType = 'bezier' | 'smoothstep' | 'straight';
@@ -35,9 +34,9 @@ export function RelationshipEdge({
   target,
   sourceHandleId: sourceHandle,
   targetHandleId: targetHandle,
-}: EdgeProps<Edge<RelationshipEdgeData>>) {
+}: EdgeProps<Edge<RelationshipEdgeData & { post?: (msg: any) => void }>>) {
 
-  const post = usePost(); // Sử dụng Context để lấy post function
+  const post = data?.post;
 
   const [relationshipType] = useState<RelationshipType>(
     data?.relationshipType || '1-n'
@@ -231,6 +230,7 @@ export function RelationshipEdge({
           e.stopPropagation();
           
           // Gửi event lên Jmix khi click vào edge
+          if (!post) return;
           post({
             v: 1,
             kind: "event",
@@ -334,6 +334,7 @@ export function RelationshipEdge({
               e.stopPropagation();
               
               // Gửi event lên Jmix khi click vào nút 3 chấm
+              if (!post) return;
               post({
                 v: 1,
                 kind: "event",

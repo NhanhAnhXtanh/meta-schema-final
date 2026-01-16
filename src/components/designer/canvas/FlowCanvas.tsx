@@ -21,7 +21,6 @@ import { TableNodeData } from '@/types/schema';
 import { TableNode } from '@/components/designer/canvas/nodes/TableNode';
 import { RelationshipEdge } from '@/components/RelationshipEdge';
 import type { BridgeMsg } from '@/bridge/bridge-core';
-import { PostContext } from '@/contexts/PostContext';
 
 const nodeTypes: NodeTypes = {
     table: TableNode as any,
@@ -115,39 +114,48 @@ export function FlowCanvas({ post }: FlowCanvasProps) {
         }
     }, [post]);
 
+    // Inject post vào nodes và edges data
+    const nodesWithPost = useMemo(() => 
+        visibleNodes.map(node => ({ ...node, data: { ...node.data, post } })),
+        [visibleNodes, post]
+    );
+
+    const edgesWithPost = useMemo(() =>
+        edges.map(edge => ({ ...edge, data: { ...(edge.data || {}), post } })),
+        [edges, post]
+    );
+
     return (
-        <PostContext.Provider value={post}>
-            <div className="flex-1 h-full w-full">
-                <ReactFlow
-                    nodes={visibleNodes}
-                    edges={edges}
-                    onNodesChange={onNodesChangeHandler}
-                    onEdgesChange={(changes) => dispatch(onEdgesChange(changes))}
-                    onNodesDelete={onNodesDelete}
-                    onConnect={onConnectHandler}
-                    isValidConnection={isValidConnection}
-                    nodeTypes={nodeTypes}
-                    edgeTypes={edgeTypes}
-                    defaultEdgeOptions={defaultEdgeOptions}
-                    fitView
-                    className="bg-gray-50"
-                    minZoom={0.1}
-                    maxZoom={4}
-                    snapToGrid={true}
-                    snapGrid={[16, 16]}
-                    proOptions={{ hideAttribution: true }}
-                >
-                    <CanvasVisualHandler />
-                    <NodeUpdater />
-                    <Background color="#ccc" gap={16} />
-                    <Controls className="bg-white text-black border-gray-200 shadow-sm" />
-                    <MiniMap
-                        nodeColor={(node) => (node.data as any).color || '#ccc'}
-                        maskColor="rgba(240, 240, 240, 0.6)"
-                        className="bg-white border border-gray-200 rounded shadow-md"
-                    />
-                </ReactFlow>
-            </div>
-        </PostContext.Provider>
+        <div className="flex-1 h-full w-full">
+            <ReactFlow
+                nodes={nodesWithPost}
+                edges={edgesWithPost}
+                onNodesChange={onNodesChangeHandler}
+                onEdgesChange={(changes) => dispatch(onEdgesChange(changes))}
+                onNodesDelete={onNodesDelete}
+                onConnect={onConnectHandler}
+                isValidConnection={isValidConnection}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                defaultEdgeOptions={defaultEdgeOptions}
+                fitView
+                className="bg-gray-50"
+                minZoom={0.1}
+                maxZoom={4}
+                snapToGrid={true}
+                snapGrid={[16, 16]}
+                proOptions={{ hideAttribution: true }}
+            >
+                <CanvasVisualHandler />
+                <NodeUpdater />
+                <Background color="#ccc" gap={16} />
+                <Controls className="bg-white text-black border-gray-200 shadow-sm" />
+                <MiniMap
+                    nodeColor={(node) => (node.data as any).color || '#ccc'}
+                    maskColor="rgba(240, 240, 240, 0.6)"
+                    className="bg-white border border-gray-200 rounded shadow-md"
+                />
+            </ReactFlow>
+        </div>
     );
 }

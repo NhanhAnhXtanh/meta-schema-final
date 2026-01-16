@@ -17,6 +17,15 @@ export interface SchemaData {
             isForeignKey?: boolean;
             visible?: boolean;
             isVirtual?: boolean;
+            isRef?: boolean;              // Field có reference đến bảng khác
+            ref?: string;                  // Tên bảng được reference (nếu isRef = true)
+            children?: Array<{             // Nested structure (object/array inline)
+                name: string;
+                type: string;
+                isRef?: boolean;
+                ref?: string;
+                children?: Array<any>;      // Recursive nested
+            }>;
         }>;
     }>;
     relationships: Array<{
@@ -76,6 +85,17 @@ export function loadSchema(schemaData: SchemaData): { nodes: Node<TableNodeData>
                         isPrimaryKey: col.isPrimaryKey || false,
                         isForeignKey: col.isForeignKey || false,
                         isVirtual: col.isVirtual || false,
+                        isRef: col.isRef || false,
+                        // Nếu có ref, lưu vào description hoặc tạo metadata
+                        description: col.ref ? `ref:${col.ref}` : undefined,
+                        // Xử lý nested children nếu có
+                        children: col.children?.map((child: any) => ({
+                            name: child.name,
+                            type: child.type,
+                            isRef: child.isRef || false,
+                            description: child.ref ? `ref:${child.ref}` : undefined,
+                            children: child.children,
+                        })),
                     })),
                     color: defaultColor,
                     isActive: true,
