@@ -1,10 +1,9 @@
 import { Node, Edge } from '@xyflow/react';
 import { TableNodeData, TableColumn } from '@/types/schema';
-import { WritableDraft } from 'immer/dist/internal';
+import { Draft as WritableDraft } from '@reduxjs/toolkit';
 
 // Helper to remove a table and its descendants (BFS)
 export const removeTableAndDescendants = (
-    nodes: WritableDraft<Node<TableNodeData>[]>,
     edges: WritableDraft<Edge[]>,
     rootId: string
 ) => {
@@ -112,7 +111,7 @@ export const deleteFieldAndCleanEdges = (
     if (!skipRecursive) {
         childNodeIds.forEach(childId => {
             // We can reuse the removeTable logic but need to be careful about state syncing
-            const idsToDelete = removeTableAndDescendants(nodes, edges, childId);
+            const idsToDelete = removeTableAndDescendants(edges, childId);
 
             // Apply deletion
             // Filter nodes

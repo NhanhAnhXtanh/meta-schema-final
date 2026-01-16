@@ -23,14 +23,7 @@ interface LinkFieldPayload {
     relationshipType?: '1-n' | '1-1' | 'n-1';
 }
 
-interface ObjectConnectionPayload {
-    sourceNodeId: string;
-    sourceFieldName: string;
-    targetNodeId: string;
-    targetFieldName?: string;
-    newFieldName: string;
-    primaryKeyFieldName: string;
-}
+
 
 const initialState: SchemaState = {
     nodes: [],
@@ -128,7 +121,7 @@ const schemaSlice = createSlice({
         },
         deleteTable: (state, action: PayloadAction<string>) => {
             const rootId = action.payload;
-            const idsToDelete = removeTableAndDescendants(state.nodes, state.edges, rootId);
+            const idsToDelete = removeTableAndDescendants(state.edges, rootId);
             state.nodes = state.nodes.filter(n => !idsToDelete.has(n.id));
             state.edges = state.edges.filter(e => !idsToDelete.has(e.source) && !idsToDelete.has(e.target));
         },

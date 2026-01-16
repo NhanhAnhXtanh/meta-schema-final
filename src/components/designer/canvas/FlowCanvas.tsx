@@ -12,14 +12,13 @@ import {
     OnNodesDelete,
     Edge,
 } from '@xyflow/react';
-import { CanvasVisualHandler } from '@/components/designer/canvas/CanvasVisualHandler';
 import '@xyflow/react/dist/style.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { onNodesChange, onEdgesChange } from '@/store/slices/schemaSlice';
 import { TableNodeData } from '@/types/schema';
 import { TableNode } from '@/components/designer/canvas/nodes/TableNode';
-import { RelationshipEdge } from '@/components/RelationshipEdge';
+import { RelationshipEdge } from '@/components/designer/canvas/edges/RelationshipEdge';
 import type { BridgeMsg } from '@/bridge/bridge-core';
 
 const nodeTypes: NodeTypes = {
@@ -77,14 +76,12 @@ export function FlowCanvas({ post }: FlowCanvasProps) {
     const onNodesDelete: OnNodesDelete = useCallback((deletedNodes) => {
         deletedNodes.forEach(node => {
             // Gửi event lên Jmix
-            post({ 
-                v: 1, 
-                kind: "event", 
-                type: "SCHEMA_TABLE_DELETE", 
-                payload: { id: node.id } 
+            post({
+                v: 1,
+                kind: "event",
+                type: "SCHEMA_TABLE_DELETE",
+                payload: { id: node.id }
             });
-            
-            alert(`Đã gửi yêu cầu xóa bảng "${node.data.label}" lên Jmix`);
         });
     }, [post]);
 
@@ -115,7 +112,7 @@ export function FlowCanvas({ post }: FlowCanvasProps) {
     }, [post]);
 
     // Inject post vào nodes và edges data
-    const nodesWithPost = useMemo(() => 
+    const nodesWithPost = useMemo(() =>
         visibleNodes.map(node => ({ ...node, data: { ...node.data, post } })),
         [visibleNodes, post]
     );
@@ -146,7 +143,6 @@ export function FlowCanvas({ post }: FlowCanvasProps) {
                 snapGrid={[16, 16]}
                 proOptions={{ hideAttribution: true }}
             >
-                <CanvasVisualHandler />
                 <NodeUpdater />
                 <Background color="#ccc" gap={16} />
                 <Controls className="bg-white text-black border-gray-200 shadow-sm" />
