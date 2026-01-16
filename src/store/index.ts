@@ -2,7 +2,6 @@ import { configureStore, Reducer, UnknownAction } from '@reduxjs/toolkit';
 import undoable, { excludeAction, StateWithHistory } from 'redux-undo';
 import schemaReducer, { SchemaState } from './slices/schemaSlice';
 import uiReducer from './slices/uiSlice';
-import linkFieldReducer from './slices/linkFieldSlice';
 
 export const store = configureStore({
     reducer: {
@@ -16,7 +15,6 @@ export const store = configureStore({
             ])
         }) as Reducer<StateWithHistory<SchemaState>, UnknownAction>,
         ui: uiReducer,
-        linkField: linkFieldReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({

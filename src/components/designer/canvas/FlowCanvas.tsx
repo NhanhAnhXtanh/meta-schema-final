@@ -16,16 +16,15 @@ import { CanvasVisualHandler } from '@/components/designer/canvas/CanvasVisualHa
 import '@xyflow/react/dist/style.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import { onNodesChange, onEdgesChange, onConnect } from '@/store/slices/schemaSlice';
+import { onNodesChange, onEdgesChange } from '@/store/slices/schemaSlice';
 import { TableNodeData } from '@/types/schema';
 import { TableNode } from '@/components/designer/canvas/nodes/TableNode';
 import { RelationshipEdge } from '@/components/RelationshipEdge';
-import { openLinkFieldDialogWithValues } from '@/store/slices/uiSlice';
 import type { BridgeMsg } from '@/bridge/bridge-core';
 import { PostContext } from '@/contexts/PostContext';
 
 const nodeTypes: NodeTypes = {
-    table: TableNode,
+    table: TableNode as any,
 };
 
 const edgeTypes: EdgeTypes = {
@@ -90,25 +89,31 @@ export function FlowCanvas({ post }: FlowCanvasProps) {
         });
     }, [post]);
 
-    const isValidConnection = useCallback((connection: Connection) => {
-        return connection.source !== connection.target;
+    const isValidConnection = useCallback((connection: Connection | Edge) => {
+        if ('source' in connection && 'target' in connection) {
+            return connection.source !== connection.target;
+        }
+        return false;
     }, []);
 
     const onConnectHandler = useCallback((connection: any) => {
         const { source, target, sourceHandle, targetHandle } = connection;
         if (source && target && sourceHandle && targetHandle) {
-            dispatch(openLinkFieldDialogWithValues({
-                sourceNodeId: source,
-                initialValues: {
+            // Gửi event lên Jmix để xử lý tạo relationship
+            post({
+                v: 1,
+                kind: "event",
+                type: "SCHEMA_RELATIONSHIP_ADD_REQUEST",
+                payload: {
+                    sourceNodeId: source,
                     targetNodeId: target,
                     sourceKey: sourceHandle,
                     targetKey: targetHandle,
-                    linkType: '1-n',
-                    fieldName: ''
+                    linkType: '1-n'
                 }
-            }));
+            });
         }
-    }, [dispatch]);
+    }, [post]);
 
     return (
         <PostContext.Provider value={post}>

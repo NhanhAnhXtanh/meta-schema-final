@@ -3,19 +3,6 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 interface UiState {
     sidebarOpen: boolean;
     isAddTableDialogOpen: boolean;
-    linkFieldDialog: {
-        isOpen: boolean;
-        sourceNodeId: string | null;
-        isEditMode?: boolean;
-        fieldIndex?: number;
-        initialValues?: {
-            targetNodeId: string;
-            sourceKey: string;
-            targetKey: string;
-            fieldName: string;
-            linkType: '1-n' | 'n-1';
-        };
-    };
     confirmDeleteDialog: {
         isOpen: boolean;
         nodeId: string | null;
@@ -27,10 +14,6 @@ interface UiState {
 const initialState: UiState = {
     sidebarOpen: true,
     isAddTableDialogOpen: false,
-    linkFieldDialog: {
-        isOpen: false,
-        sourceNodeId: null
-    },
     confirmDeleteDialog: {
         isOpen: false,
         nodeId: null,
@@ -48,53 +31,6 @@ const uiSlice = createSlice({
         },
         setAddTableDialogOpen: (state, action: PayloadAction<boolean>) => {
             state.isAddTableDialogOpen = action.payload;
-        },
-        openLinkFieldDialog: (state, action: PayloadAction<string>) => {
-            state.linkFieldDialog.isOpen = true;
-            state.linkFieldDialog.sourceNodeId = action.payload;
-            state.linkFieldDialog.isEditMode = false;
-            state.linkFieldDialog.initialValues = undefined;
-        },
-        openEditLinkFieldDialog: (state, action: PayloadAction<{
-            sourceNodeId: string;
-            fieldIndex: number;
-            initialValues: {
-                targetNodeId: string;
-                sourceKey: string;
-                targetKey: string;
-                fieldName: string;
-                linkType: '1-n' | 'n-1';
-            }
-        }>) => {
-            state.linkFieldDialog.isOpen = true;
-            state.linkFieldDialog.sourceNodeId = action.payload.sourceNodeId;
-            state.linkFieldDialog.isEditMode = true;
-            state.linkFieldDialog.fieldIndex = action.payload.fieldIndex;
-            state.linkFieldDialog.initialValues = action.payload.initialValues;
-        },
-        openLinkFieldDialogWithValues: (state, action: PayloadAction<{
-            sourceNodeId: string;
-            initialValues: {
-                targetNodeId: string;
-                sourceKey: string;
-                targetKey: string;
-                fieldName?: string;
-                linkType: '1-n' | 'n-1';
-            }
-        }>) => {
-            state.linkFieldDialog.isOpen = true;
-            state.linkFieldDialog.sourceNodeId = action.payload.sourceNodeId;
-            state.linkFieldDialog.isEditMode = false;
-            state.linkFieldDialog.initialValues = {
-                fieldName: '',
-                ...action.payload.initialValues
-            };
-        },
-        closeLinkFieldDialog: (state) => {
-            state.linkFieldDialog.isOpen = false;
-            state.linkFieldDialog.sourceNodeId = null;
-            state.linkFieldDialog.isEditMode = false;
-            state.linkFieldDialog.initialValues = undefined;
         },
         openConfirmDeleteDialog: (state, action: PayloadAction<{ nodeId: string; fieldIndex: number; fieldName: string }>) => {
             state.confirmDeleteDialog = {
@@ -118,7 +54,6 @@ const uiSlice = createSlice({
 export const {
     toggleSidebar,
     setAddTableDialogOpen,
-    openLinkFieldDialog, openEditLinkFieldDialog, openLinkFieldDialogWithValues, closeLinkFieldDialog,
     openConfirmDeleteDialog, closeConfirmDeleteDialog
 } = uiSlice.actions;
 
